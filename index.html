@@ -2,8 +2,58 @@
 <html>
     <head>
         <title>Let's Chat</title>
-        <link rel="stylesheet" type="text/css" href="semantic.css">
-        <link rel="stylesheet" type="text/css" href="main.css">
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.css">
+        
+
+        <style>
+                /* CSS */
+                body{
+                    background: #f9f9f9;
+                }
+                #container{
+                    width: 700px;
+                    margin: 0 auto;
+                }
+                #chatWindow{
+                    height: 300px;
+                
+                }
+                #mainWrapper{
+                    display: none;
+                }
+                #chatWrapper{
+                    float: left;
+                    border: 1px #ccc solid;
+                    border-radius: 10px;
+                    background: #f4f4f4;
+                    padding: 10px;
+                }
+                #userWrapper{
+                    float: left;
+                    border: 1px #ccc solid;
+                    border-radius: 10px;
+                    background: #f4f4f4;
+                    padding: 10px;
+                    margin-left: 20px;
+                    width: 150px;
+                    max-height: 200px;
+                }
+                #namesWrapper{
+                    float: left;
+                    border: 1px #ccc solid;
+                    border-radius: 10px;
+                    background: #f4f4f4;
+                    padding: 10px;
+                    margin-left: 20px;
+                    
+                    
+                }
+                input{
+                    height: 30px;
+                    border:solid 1px #ccc;
+                }
+        </style>
+
     </head>
 
     <body>
@@ -11,6 +61,7 @@
             <div id="namesWrapper">
                 <h2>ChatIO</h2>
                 <p>Create Username</p>
+                <div id="error"></div>
                     <form id="userNameForm">
                         <input type="text" id="username" size="35">
                         <button>Submit</button>
@@ -34,6 +85,54 @@
             </div>
 
         </div>
+
+
+     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+     <script>
+         $(function(){
+            let socket = io.connect();
+            let $messageForm = $('#messageForm');
+            let $message = $('#message');
+            let $chat = $('#chatWindow');
+            let $userNameForm = $('#userNameForm');
+            let $users = $('#users');
+            let $username = $('#username');
+            let $error = $('#error');
+
+
+            $userNameForm.submit((e)=>{
+                e.preventDefault();
+                socket.emit('new user', $username.val(), (data)=>{
+                    if (data){
+                        $('#namesWrapper').hide();
+                        $('#mainWrapper').show();
+                    } else {
+                        $error.html('Username is Taken');
+                    }
+                });
+            });
+
+            socket.on('usernames', (data)=>{
+                var html = '';
+                for(i=0; i<data.lenght; i++){
+                    html += data[i] + '<br>';
+                }
+                $users.html(html);
+            });
+
+            $messageForm.submit((e)=>{
+                e.preventDefault();
+                socket.emit('send message', $message.val());
+                $message.val('');
+            });
+
+            socket.on('new message', (data)=>{
+                $chat.append(data.msg+'<br>');
+            });
+
+         });
+    </script>
     </body>
 
 </html>
